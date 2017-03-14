@@ -1,0 +1,57 @@
+*palette.txt*  motion improved - Version 1.8
+
+                    Palette
+
+TODO generate a TOC ?
+
+==============================================================================
+1. Overview                                                            *palette*
+
+The goal of this plugin is to provide an easy way to change your vim settings
+without having to actually know or remember the setting exact name: type its
+description and fzf will look for it in your place.
+
+==============================================================================
+2. Usage                                                         *palette-usage*
+
+Just run the command :Palette
+
+
+------------------------------------------------------------------------------
+2.2 Default settings                                          *palette-settings*
+
+
+*g:palette_fzf_opts*
+This setting will tell Neomake which makers to use by default when not
+operating on a single file, or when no makers are defined for the filetype of
+the current buffer. This effectively defaults to: >
+    let g:palette_fzf_opts= ['makeprg']
+<
+*g:palette_histadd*
+Set to 1 to add the command to cmdline history (see |histadd|).
+Defaults to 0.
+
+
+------------------------------------------------------------------------------
+4.3 Custom Mappings                                           *palette-mappings*
+
+Only <Plug>(Palette) is available for now. You can set for instance: >
+    nmap <Leader>p <Plug>(PaletteRun)
+<
+
+==============================================================================
+5. Contributing                                           *palette-contributing*
+
+Bug reports, feature requests, and patches are welcome:
+    https://github.com/teto/nvim-palette
+
+==============================================================================
+6. Credits                                                     *palette-credits*
+
+Thanks to the neovim community, its many BFDL.
+
+Author: You !
+
+==============================================================================
+vim:tw=78:sw=4:ts=8:ft=help:norl:
+eak 
