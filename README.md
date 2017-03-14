@@ -1,9 +1,15 @@
 # nvim-palette
+
 Change easily nvim options at runtime without remembering their name !
 nvim-palette will fuzzy-search the option depending on its description and help
 you change it (automatic toggling of boolean options for instance).
 
+![Readme](./screen.png)
+
+
 # Installation
+
+This is a remote plugin, it won't work in vim.
 
 As dependancies, you need [pandas](http://pandas.pydata.org/) (to deal with csv) and [fzf](https://github.com/junegunn/fzf):
 - python -mpip install --user pandas to install pandas 
