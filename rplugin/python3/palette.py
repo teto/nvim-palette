@@ -9,6 +9,7 @@ import logging
 import gettext as g
 import pandas as pd
 import os
+import json
 
 logger = logging.getLogger('palette')
 
@@ -19,40 +20,60 @@ class PalettePlugin(object):
 
     def __init__(self, nvim):
         """
-        to ease testing:
+        to ease testing (for instance in jupyter-console):
         from neovim import attach
         import sys
         # echo serverlist() or v:servername in a running nvim
         nvim = attach('socket', path='/tmp/nvimJHSJGG/0')
-        sys.path.append('/home/teto/nvim-palette/rplugin/python3/palette')
+        sys.path.append('~/nvim-palette/rplugin/python3/palette')
         import palette as p
 
         """
         self.nvim = nvim
 
-        logger.addHandler(NeoVimLoggerHandler(nvim))
-        logger.setLevel(logging.DEBUG)
+        if nvim.vars['palette_debug']:
+            # logger.addHandler(NeoVimLoggerHandler(nvim))
+            handler = logging.FileHandler(".nvimpalette.log", delay=True)
+            logger.addHandler(handler)
+            logger.setLevel(logging.DEBUG)
 
-        # filedir = os.path.dirname(os.path.realpath(__file__))
-        # filename = os.path.join(filedir, "options.csv"),
-        # self.df = pd.read_csv(
-        #     os.path.join(filedir, "options.csv"), sep=",",
-        #     error_bad_lines=False, warn_bad_lines=True,
-        # )
-        # pd.read_msgpack just returns a
-        # self.handle = unpackb(code_data[1])
+            formatter = logging.Formatter('%(name)s:%(levelname)s: %(message)s')
+            handler.setFormatter(formatter)
+
         self.df = self.load()
 
     def load(self):
         r = g.bindtextdomain('nvim', locale_dir)
 
         fields = ["full_name", "short_desc", "abbreviation", "scope"]
-        # for now we embed the mpack fil
-        # TODO use $VIMRUNTIME /usr/local/share/nvim/runtime
-        fname = '/home/teto/neovim2/build/runtime/data/options.mpack'
+        # we embed the mpack file to deal with old nvim
+        folders = [
+            self.nvim.eval('$VIMRUNTIME').strip(),
+            os.path.dirname(os.path.abspath(__file__))
+        ]
+
+        fname = None
+        # TODO let the user be able to override default paths
+        fname = self.nvim.vars['palette_descriptions_file']
+        if fname is None:
+
+            for folder in folders:
+                fname = os.path.join(folder, 'data', 'options.mpack')
+                logger.debug("Checking path '%s'" % fname)
+                if os.path.isfile(fname):
+                    break
+
+        # fname = '/home/teto/neovim2/build/runtime/data/options.mpack'
         # fname = os.path.join(filedir, "options.mpack"),
-        fd = open(fname, 'rb')
-        res = msgpack.loads(fd.read())
+        logger.info("Loading descriptions from file %s" % fname)
+
+        try:
+            fd = open(fname, 'rb')
+            res = msgpack.loads(fd.read())
+        except Exception as e:
+            logger.error('Could not load definitions')
+            self.nvim.command("echomsg 'Could not load definitions'")
+            raise e
 
         df = pd.DataFrame([], columns=fields)
         for entry in res:
@@ -64,10 +85,26 @@ class PalettePlugin(object):
             df = df.append(temp, ignore_index=True)
         # df = pd.DataFrame(res, columns=fields)
         # df.from_records(res)
+        logger.debug(df["scope"].head())
         df["scope"] = df["scope"].apply(lambda x: [e.decode() for e in x])
         # print(df)
         return df
 
+    @neovim.function('PaletteGetMenu', sync=True)
+    def get_menus(self, args):
+
+        # self.nvim.command("let m = export_menus('', 'n')")
+        # self.nvim.command("let r = json_encode(m)")
+        # TODO ask for a fix should work without r
+        self.nvim.command("let g:r = 'toto'")
+        # m = self.nvim.vars["m"]
+        m = "test"
+        r = self.nvim.vars["r"]
+        logger.info("m=%r r=%r" % (m, r))
+        entries = []
+
+        # d = json.loads()
+        res = self.nvim.call('PaletteFzf', entries)
 
     @neovim.function('PaletteGetBools', sync=True)
     def get_bools(self, args):
@@ -76,8 +113,7 @@ class PalettePlugin(object):
         """
         entries = []
         df = self.df
-        # TODO for now drop columns without desc
-        # see options.backup.lua for the version with changes
+        # for now drop columns without desc
         # df = df.drop("short_desc")
         # sel = df[df.scope == "global"]
         sel = df
@@ -87,7 +123,7 @@ class PalettePlugin(object):
                 try:
                     logger.debug("scope =%r" % row.scope)
                     short_desc = g.gettext(row.short_desc)
-                    short_desc += " (switch " + ("OFF" if self.get_option_value(row.full_name, row.scope[0]) else "ON ") + ")"
+                    short_desc += " (switch %s)" % ("OFF" if self.get_option_value(row.full_name, row.scope[0]) else "ON ")
                     entries.append(short_desc)
                 except Exception as e:
                     logger.debug("Option '%s' seems not supported" % row.full_name)
@@ -123,10 +159,10 @@ class PalettePlugin(object):
         return cmd
 
 
-class NeoVimLoggerHandler(logging.Handler):
-    def __init__(self, nvim):
-        super().__init__()
-        self.nvim = nvim
+# class NeoVimLoggerHandler(logging.Handler):
+#     def __init__(self, nvim):
+#         super().__init__()
+#         self.nvim = nvim
 
-    def emit(self, record):
-        msg = self.format(record).replace('"', '`')
+#     def emit(self, record):
+#         msg = self.format(record).replace('"', '`')

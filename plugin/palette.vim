@@ -4,7 +4,6 @@
 
 
 function! s:processResult(res)
-	" echom 'result='.a:res. ' of type '.type(a:res)
 	let cmd = PalettePostprocessChoice(a:res)
 	echom "Received cmd=".cmd
 	execute cmd
@@ -24,6 +23,11 @@ let s:opts = {
 
 
 command! Palette call PaletteGetBools()
+" does not work
+if has("export_menu")
+	" echom "has export_menu"
+	command! PaletteMenu call PaletteGetMenu()
+endif
 
 
 
@@ -31,9 +35,6 @@ function! PaletteFzf(entries)
 	" echo "entries=".string(a:entries)
 	let g:palette_fzf_opts = get(g:,'palette_fzf_opts', s:opts)
 	let g:palette_fzf_opts.source = a:entries
-	" let s:opts.source = a:entries
-	" let s:opts.source = ["test 1", "test2"]
-	" result processed in sink
 	let l:ret = fzf#run(s:opts)
 endfunction
 

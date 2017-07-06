@@ -31,11 +31,14 @@ the current buffer. This effectively defaults to: >
 Set to 1 to add the command to cmdline history (see |histadd|).
 Defaults to 0.
 
+*g:palette_descriptions_file*
+Set it to force the loading of a specific mpack file.
+
 
 ------------------------------------------------------------------------------
 4.3 Custom Mappings                                           *palette-mappings*
 
-Only <Plug>(Palette) is available for now. You can set for instance: >
+Only <Plug>(PaletteRun) is available for now. You can set for instance: >
     nmap <Leader>p <Plug>(PaletteRun)
 <
 
@@ -54,4 +57,3 @@ Author: You !
 
 ==============================================================================
 vim:tw=78:sw=4:ts=8:ft=help:norl:
-eak 
