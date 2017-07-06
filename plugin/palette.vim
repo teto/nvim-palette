@@ -21,8 +21,10 @@ let s:opts = {
 	\ }
 
 
-
+" command! -nargs=* -complete=customlist,<sid>complete Palette call <sid>parse_flags(<q-args>)
 command! Palette call PaletteGetBools()
+
+
 " does not work
 if has("export_menu")
 	" echom "has export_menu"

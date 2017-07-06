@@ -32,7 +32,7 @@ See `:h palette` for more details.
 # TODO
 
 There are many ways to improve the plugin:
- - filter settings between scope (global/buffer/window)
+ - filter settings according to scope (global/buffer/window)
  - add more entries
  	- List [mappings and their description] (https://github.com/neovim/neovim/pull/6236)
 	- Add [menu entries](https://github.com/vim/vim/issues/1563) (like those defined for gvim)

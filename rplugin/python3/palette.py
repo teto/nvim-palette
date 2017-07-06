@@ -49,12 +49,17 @@ class PalettePlugin(object):
         # we embed the mpack file to deal with old nvim
         folders = [
             self.nvim.eval('$VIMRUNTIME').strip(),
-            os.path.dirname(os.path.abspath(__file__))
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..')
         ]
 
         fname = None
         # TODO let the user be able to override default paths
-        fname = self.nvim.vars['palette_descriptions_file']
+        try:
+            fname = self.nvim.vars['palette_descriptions_file']
+            logger.info("using configured g:palette_descriptions_file value")
+        except Exception as e:
+            logger.debug("Looking for descriptions files")
+            # NvimDevLintToggle
         if fname is None:
 
             for folder in folders:
