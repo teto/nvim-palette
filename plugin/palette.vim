@@ -22,13 +22,13 @@ let s:opts = {
 
 
 " command! -nargs=* -complete=customlist,<sid>complete Palette call <sid>parse_flags(<q-args>)
-command! Palette call PaletteGetBools()
+command! Palette call PaletteSelect({ 'menus': v:true, 'options': v:true})
 
 
-" does not work
-if has("export_menu")
+"
+if exists("*menu_get")
 	" echom "has export_menu"
-	command! PaletteMenu call PaletteGetMenu()
+	command! PaletteMenu call PaletteSelect({ 'menus': 1})
 endif
 
 
@@ -40,6 +40,3 @@ function! PaletteFzf(entries)
 	let l:ret = fzf#run(s:opts)
 endfunction
 
-
-
-nnoremap <silent> <Plug>(PaletteRun)	:<c-u>call PaletteGetBools()<cr>

@@ -30,19 +30,38 @@ class PalettePlugin(object):
 
         """
         self.nvim = nvim
+        # self.refresh_menu = True
+        self._cached_menu = pd.DataFrame()
+        self._cached_opts = pd.DataFrame()
 
         if nvim.vars['palette_debug']:
             # logger.addHandler(NeoVimLoggerHandler(nvim))
-            handler = logging.FileHandler(".nvimpalette.log", delay=True)
+            handler = logging.FileHandler("nvimpalette.log", delay=True)
             logger.addHandler(handler)
             logger.setLevel(logging.DEBUG)
 
             formatter = logging.Formatter('%(name)s:%(levelname)s: %(message)s')
             handler.setFormatter(formatter)
 
-        self.df = self.load()
+        self.nvim.subscribe("update_menu")
 
-    def load(self):
+    @property
+    def cached_menus(self):
+        return self._cached_menu
+
+    @cached_menus.setter
+    def cached_menus(self, val):
+        self._cached_menu = val
+
+    @property
+    def cached_options(self):
+        return self._cached_opts
+
+
+    def load_options_definitions(self, force=False):
+        """
+        Load vim option descriptions from a mpack file
+        """
         r = g.bindtextdomain('nvim', locale_dir)
 
         fields = ["full_name", "short_desc", "abbreviation", "scope"]
@@ -90,34 +109,108 @@ class PalettePlugin(object):
             df = df.append(temp, ignore_index=True)
         # df = pd.DataFrame(res, columns=fields)
         # df.from_records(res)
-        logger.debug(df["scope"].head())
+        # logger.debug(df["scope"].head())
         df["scope"] = df["scope"].apply(lambda x: [e.decode() for e in x])
         # print(df)
         return df
 
-    @neovim.function('PaletteGetMenu', sync=True)
-    def get_menus(self, args):
+    # @neovim.function('PaletteGetMenu', sync=True)
+    # def get_menus(self, args):
+    #     entries = self.retrieve_menus()
+    #     keys = list(entries.keys())
+    #     res = self.nvim.call('PaletteFzf', keys)
+
+    @neovim.function('PaletteSelect', sync=True)
+    def get_propositions(self, opts=[{'options': True}]):
+        entries = []
+        logger.debug("options %r" % opts)
+        opts = opts[0] # hack because vimL dict seems encapsulated into a list
+        if opts.get('options'):
+            entries += self.get_bools()
+
+        if opts.get('menus'):
+            menus = self.retrieve_menus()
+            # keys = list(menus.keys())
+            entries += menus.desc.tolist()
+
+        logger.debug("Choosing between %s" % entries[:10])
+        res = self.nvim.call('PaletteFzf', entries)
+
+    def retrieve_menus(self, force=False):
+        """
+        TODO factor 
+        TODO build a pandaframe along the way to optimize
+        TODO on update_menu notification reload menus
+        """
 
         # self.nvim.command("let m = export_menus('', 'n')")
         # self.nvim.command("let r = json_encode(m)")
         # TODO ask for a fix should work without r
-        self.nvim.command("let g:r = 'toto'")
-        # m = self.nvim.vars["m"]
-        m = "test"
-        r = self.nvim.vars["r"]
-        logger.info("m=%r r=%r" % (m, r))
-        entries = []
+        # self.nvim.command("let g:r = 'toto'")
+        # # m = self.nvim.vars["m"]
+        # m = "test"
+        # r = self.nvim.vars["r"]
+        # logger.info("m=%r r=%r" % (m, r))
+        # entries = []
+        # self.menus
+        entries = {}
+        if not self.cached_menus.empty and force is False:
+            return self.cached_menus
 
-        # d = json.loads()
-        res = self.nvim.call('PaletteFzf', entries)
+        returned_menus = self.nvim.eval("menu_get('')")
+        logger.debug('Loaded menus %s', returned_menus)
+        self.refresh_menu = False
 
-    @neovim.function('PaletteGetBools', sync=True)
-    def get_bools(self, args):
-        """
-        fzf accepts a list as input
-        """
+        def build_leaf_entry(entry):
+            """Build a menu entry"""
+            # TODO use current mode, for now assume normal
+            command = entry.get("implementations", []).get("n", "").get('rhs', "")
+            return {entry["name"]: command}
+
+        def build_entries(menus, prefix=""):
+            """
+            returns a list of entries
+            """
+            entries = {}
+            import pprint as pp
+            for entry in menus:
+                # name/hidden/enabled/submenus
+                # pp.pprint(stream=)
+                pretty_entry = pp.pformat(entry)
+
+                # logger.debug('Parsing entry: %s', pretty_entry)
+                # logger.debug('submenus value: %s', entry.get("submenus"))
+                # logger.debug('submenus value: %s', entry.get("submenus"))
+                if entry.get("submenus"):
+                    # if it's a top menu
+                    subentries = build_entries(entry["submenus"])
+                    # logger.debug('subentries: %s', subentries)
+                    entries.update(subentries)
+                else:
+                    subentry = build_leaf_entry(entry)
+                    logger.debug('subentry=%s', pretty_entry)
+                    entries.update(subentry)
+
+            return entries
+
+        entries = build_entries(returned_menus)
+        self.cached_menus = pd.DataFrame.from_dict(
+                { 'desc': list(entries.keys()), 'command': list(entries.values())}
+                )
+        # return entries
+        return self.cached_menus
+
+    # @neovim.function('PaletteGetBools', sync=True)
+    def get_bools(self, ):
+        """Get only boolean options"""
         entries = []
-        df = self.df
+        if not self.cached_options.empty and force == False:
+            return self.cached_options
+
+        # else load descriptions
+
+        # TODO load it on demand
+        df = self.load_options_definitions(True)
         # for now drop columns without desc
         # df = df.drop("short_desc")
         # sel = df[df.scope == "global"]
@@ -134,7 +227,7 @@ class PalettePlugin(object):
                     logger.debug("Option '%s' seems not supported" % row.full_name)
 
         logger.debug("Sending entries=%r" % entries)
-        res = self.nvim.call('PaletteFzf', entries)
+        return entries
 
     def get_option_value(self, full_name, scope):
         source = None
@@ -148,20 +241,32 @@ class PalettePlugin(object):
         return source[full_name]
 
     @neovim.function('PalettePostprocessChoice', sync=True)
-    def TranslateToCommand(self, line):
-        # BUG in client ? line is a list while vimscript sends it as a string
-        line = line[0]
-        logger.info("Translating command %s (type %s)" % (line, type(line)))
-        stripped = line[:-len(" (switch OFF)")]
-        logger.debug("Looking for short_desc=%s" % stripped)
-        df = self.df[self.df.short_desc == stripped]
-        if len(df) <= 0:
-            # TODO escape it replace('"','\\"')
-            return ":echom 'Nothing found for \"" + stripped + "\"'"
+    def map_to_command(self, line):
+        """
+        Need to convert description back to its command
 
-        row = df.iloc[0, ]
-        cmd = "set " + row['full_name'] + "!"
-        return cmd
+        first check if it's a menu description, then check for option desc
+        """
+        line = line[0]
+        logger.info("Trying to map '%s' (type %s)" % (line, type(line)))
+        logger.info("from\n %s " % self.cached_menus)
+        df = self.cached_menus[self.cached_menus.desc == line]
+        if len(df) > 0:
+            row = df.iloc[0, ]
+            cmd = row['command']
+            logger.info("Found command %s" % cmd)
+            return cmd
+        else:
+            df = self.cached_options[self.cached_options.short_desc == stripped]
+            stripped = line[:-len(" (switch OFF)")]
+            logger.debug("Looking for short_desc=%s" % stripped)
+            if len(df) > 0:
+                # TODO escape it replace('"','\\"')
+                row = df.iloc[0, ]
+                cmd = "set " + row['full_name'] + "!"
+                return cmd
+        return ":echom 'Nothing found for \"" + stripped + "\"'"
+
 
 
 # class NeoVimLoggerHandler(logging.Handler):
