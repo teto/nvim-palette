@@ -164,7 +164,7 @@ class PalettePlugin(object):
         def build_leaf_entry(entry):
             """Build a menu entry"""
             # TODO use current mode, for now assume normal
-            command = entry.get("implementations", []).get("n", "").get('rhs', "")
+            command = entry.get("mappings", []).get("n", "").get('rhs', "")
             return {entry["name"]: command}
 
         def build_entries(menus, prefix=""):
