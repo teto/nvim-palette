@@ -1,21 +1,19 @@
-*palette.txt*  motion improved - Version 1.8
+*palette.txt*   Palette
 
-                    Palette
-
-TODO generate a TOC ?
 
 ==============================================================================
 1. Overview                                                            *palette*
 
-The goal of this plugin is to provide an easy way to change your vim settings
-without having to actually know or remember the setting exact name: type its
-description and fzf will look for it in your place.
+The goal of this plugin is to provide an easy way to change various nvim settings, access mappings or run menus without having to remember their actual exact name: type the setting or menu description and your favorite fuzzy searcher will look for it (for now only fzf is supported).
 
 ==============================================================================
 2. Usage                                                         *palette-usage*
 
 Just run the command :Palette
 
+>
+    call PaletteSelect({ 'menus': 1})
+<
 
 ------------------------------------------------------------------------------
 2.2 Default settings                                          *palette-settings*
@@ -32,24 +30,27 @@ Set to 1 to add the command to cmdline history (see |histadd|).
 Defaults to 0.
 
 *g:palette_descriptions_file*
-Set it to force the loading of a specific mpack file.
+Force the loading of a specific mpack file. Mostly for debug purpose. You
+probably should forget about it.
+
+*g:palette_debug=1*
 
 
 ------------------------------------------------------------------------------
-4.3 Custom Mappings                                           *palette-mappings*
+3 Custom Mappings                                           *palette-mappings*
 
 Only <Plug>(PaletteRun) is available for now. You can set for instance: >
     nmap <Leader>p <Plug>(PaletteRun)
 <
 
 ==============================================================================
-5. Contributing                                           *palette-contributing*
+4. Contributing                                           *palette-contributing*
 
 Bug reports, feature requests, and patches are welcome:
     https://github.com/teto/nvim-palette
 
 ==============================================================================
-6. Credits                                                     *palette-credits*
+5. Credits                                                     *palette-credits*
 
 Thanks to the neovim community, its many BFDL.
 
