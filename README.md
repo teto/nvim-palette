@@ -11,16 +11,13 @@ you change it (automatic toggling of boolean options for instance).
 
 This is a remote plugin, it won't work in vim.
 
-As dependancies, you need [pandas](http://pandas.pydata.org/) (to deal with csv) and [fzf](https://github.com/junegunn/fzf):
+As dependancies, you need [pandas](http://pandas.pydata.org/) (to load ./data/options.mpack) and [fzf](https://github.com/junegunn/fzf):
 - python -mpip install --user pandas to install pandas 
 - Installation in neovim with vim-plug:
 ```
 Plug 'junegunn/fzf' " if not installed already 
-Plug 'teto/nvim-palette', { 'do': 'UpdateRemotePlugins'}
+Plug 'teto/nvim-palette', { 'do': ':UpdateRemotePlugins'}
 ```
-
-Then run:
-`:UpdateRemotePlugins`
 
 # Configuration
 
@@ -29,15 +26,16 @@ Once installed, run the command `:Palette` to see the plugin in action.
 See `:h palette` for more details.
 
 
-# TODO
+# Todo
 
 There are many ways to improve the plugin:
- - filter settings according to scope (global/buffer/window)
+ - filter settings according to scope (global/buffer/window). Settings are
+ loaded from the file options.mpack generated via [this
+ PR](https://github.com/neovim/neovim/pull/6288)
  - accept more entries
- 	- List [mappings and their description] (https://github.com/neovim/neovim/pull/6236)
-	- Add [menu entries](https://github.com/vim/vim/issues/1563) (like those defined for gvim)
-	- and their translations (in runtime/lang/menu_\* for instance. with gettext)
-	- allow settings that are not boolean, just set their current value instead
+ 	- List [mappings and their description](https://github.com/neovim/neovim/pull/6236)
+	- ~~Add [menu entries](https://github.com/vim/vim/issues/1563) (like those defined for gvim)~~
+	- ...and their translations (in runtime/lang/menu_\* for instance. with gettext)
  - optimization, it's a bit of a PoC, performance wasn't a concern
  - work with denite/ctrlp
 
