@@ -1,4 +1,4 @@
-" nvim-palette - vim for noobs
+" nvim-palette - nvim for noobs
 " Author:       Matthieu Coudron
 " License:      MIT
 
@@ -25,13 +25,19 @@ let s:opts = {
 command! Palette call PaletteSelect({ 'menus': v:true, 'options': v:true})
 
 
-"
 if exists("*menu_get")
 	" echom "has export_menu"
+	PaletteAddSource("menu")
+
 	command! PaletteMenu call PaletteSelect({ 'menus': 1})
 endif
 
+if exists("*nvim_get_keymap")
+	" echom "has nvim_get_keymap"
+	command! PaletteKeymaps call PaletteSelect({ 'menus': 1})
+endif
 
+"TODO detect fzf via fzf.vim for instance ?
 
 function! PaletteFzf(entries)
 	" echo "entries=".string(a:entries)
