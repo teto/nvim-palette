@@ -45,8 +45,9 @@ class PalettePlugin(object):
             formatter = logging.Formatter('%(name)s:%(levelname)s: %(message)s')
             handler.setFormatter(formatter)
 
+        """ { name: src } dict """
         self.sources = []
-        self.add_source( menus.PaletteMenus())
+        self.add_source(menus.PaletteMenus())
 
     @neovim.function('PaletteAddSource', sync=True)
     def add_source(self, src):
@@ -55,7 +56,10 @@ class PalettePlugin(object):
         runtime/rplugin/python3/deoplete for source files.
         it is called by deoplete.py:load_sources
         """
-        self._sources[name] = 
+        if self.sources.get(src.name):
+            raise Exception("A source is already registered with mark %s " % src.name)
+
+        self.sources[src.name] = src
 
 
     # @neovim.function('PaletteGetMenu', sync=True)
@@ -75,7 +79,7 @@ class PalettePlugin(object):
         logger.debug("options %r" % opts)
         opts = opts[0] # hack because vimL dict seems encapsulated into a list
         for name, match in opts.items():
-            src = self._sources.get(name)
+            src = self.sources.get(name)
             entries.append(src.entries())
 
         logger.debug("Choosing between %s" % entries[:10])
@@ -91,8 +95,15 @@ class PalettePlugin(object):
         """
         line = line[0]
         logger.info("Trying to map '%s' (type %s)" % (line, type(line)))
+
+        # for now mark = first character, could be the last
         mark = line[0]
 
+        # look at the mark
+        for src in self.sources:
+            if src.mark == mark:
+                logger.debug("Entry mapped to src %s" % src.name)
+                cmd = src.map2command(line)
 
 
         return ":echom 'Nothing found for \"" + stripped + "\"'"

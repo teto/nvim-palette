@@ -7,7 +7,7 @@ class Source:
         self.name = name
         self.mark = mark
 
-    def init(self, vim, name, mark):
+    def init(self, vim, ):
         self.__init__()
 
 

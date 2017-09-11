@@ -27,7 +27,7 @@ command! Palette call PaletteSelect({ 'menus': v:true, 'options': v:true})
 
 if exists("*menu_get")
 	" echom "has export_menu"
-	PaletteAddSource("menu")
+	" PaletteAddSource("menu")
 
 	command! PaletteMenu call PaletteSelect({ 'menus': 1})
 endif
