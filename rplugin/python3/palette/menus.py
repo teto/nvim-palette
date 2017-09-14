@@ -1,18 +1,25 @@
-from . import Source
+from palette.source import Source
 import pandas as pd
+import logging
 
 logger = logging.getLogger('palette')
 
 
 class PaletteMenus(Source):
-    def init(self, vim):
-        vim.subscribe("update_menu")
+    def __init__(self, *args, **kwargs):
+        print(args)
         self._cached_menu = pd.DataFrame()
+        super().__init__(*args, **kwargs)
+        self.vim.subscribe("update_menu")
 
+    @Source.name.getter
+    def name(self):
+        """ (temporary) rename to ease testing"""
+        return "menus"
 
     def retrieve_menus(self, force=False):
         """
-        TODO build a pandaframe along the way to optimize
+        TODO build a pandaframe along the way to optimizeEnabling networkmanager should be enough for VPN plugins to work
         TODO on update_menu notification reload menus
         """
 
@@ -23,14 +30,12 @@ class PaletteMenus(Source):
         # # m = self.nvim.vars["m"]
         # m = "test"
         # r = self.nvim.vars["r"]
-        # logger.info("m=%r r=%r" % (m, r))
         # entries = []
-        # self.menus
         entries = {}
         if not self.cached_menus.empty and force is False:
             return self.cached_menus
 
-        returned_menus = self.nvim.eval("menu_get('')")
+        returned_menus = self.vim.eval("menu_get('')")
         logger.debug('Loaded menus %s', returned_menus)
         self.refresh_menu = False
 
@@ -53,11 +58,9 @@ class PaletteMenus(Source):
 
                 # logger.debug('Parsing entry: %s', pretty_entry)
                 # logger.debug('submenus value: %s', entry.get("submenus"))
-                # logger.debug('submenus value: %s', entry.get("submenus"))
                 if entry.get("submenus"):
                     # if it's a top menu
                     subentries = build_entries(entry["submenus"])
-                    # logger.debug('subentries: %s', subentries)
                     entries.update(subentries)
                 else:
                     subentry = build_leaf_entry(entry)

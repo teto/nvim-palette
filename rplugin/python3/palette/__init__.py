@@ -1,6 +1,7 @@
+#!/
 """
 Description: Easy toggling ON/OFF of options
-License: MIT
+License: GPLv3
 """
 
 import neovim
@@ -10,11 +11,10 @@ import gettext as g
 import pandas as pd
 import os
 import json
-from . import menus
+from abc import abstractmethod
+import palette.menus as menus
 
 logger = logging.getLogger('palette')
-
-locale_dir = "/home/teto/neovim2/build/locale"
 
 
 @neovim.plugin
@@ -45,9 +45,13 @@ class PalettePlugin(object):
             formatter = logging.Formatter('%(name)s:%(levelname)s: %(message)s')
             handler.setFormatter(formatter)
 
-        """ { name: src } dict """
-        self.sources = []
-        self.add_source(menus.PaletteMenus())
+        """ { mark: src } dict """
+        self.sources = {}
+        # TODO should be done from vim side ?
+        if nvim.eval("exists('*menu_get')"):
+            m = menus.PaletteMenus(nvim)
+        # print("test", m.name)
+            self.add_source(m)
 
     @neovim.function('PaletteAddSource', sync=True)
     def add_source(self, src):
@@ -56,10 +60,10 @@ class PalettePlugin(object):
         runtime/rplugin/python3/deoplete for source files.
         it is called by deoplete.py:load_sources
         """
-        if self.sources.get(src.name):
+        if self.sources.get(src.mark):
             raise Exception("A source is already registered with mark %s " % src.name)
 
-        self.sources[src.name] = src
+        self.sources[src.mark] = src
 
 
     # @neovim.function('PaletteGetMenu', sync=True)
@@ -68,7 +72,7 @@ class PalettePlugin(object):
     #     keys = list(entries.keys())
     #     res = self.nvim.call('PaletteFzf', keys)
 
-    @neovim.function('PaletteSelect', sync=True)
+    @neovim.function('PaletteGetEntries', sync=True)
     def get_propositions(self, opts=[{'options': True}]):
         """
         Accept a dictionary:
@@ -78,9 +82,14 @@ class PalettePlugin(object):
         entries = []
         logger.debug("options %r" % opts)
         opts = opts[0] # hack because vimL dict seems encapsulated into a list
-        for name, match in opts.items():
-            src = self.sources.get(name)
-            entries.append(src.entries())
+        for _, src in self.sources.items():
+            filter_cmd = opts.get(src.name)
+            if filter_cmd:
+                temp = src.serialize(filter_cmd)
+                # temp = map(lambda x: "[" + src.mark + "]" + x, temp )
+                entries.append(temp)
+            else:
+                logger.debug('No filter for source %s' % src.name)
 
         logger.debug("Choosing between %s" % entries[:10])
         # res = self.nvim.call('PaletteFzf', entries)
@@ -100,13 +109,20 @@ class PalettePlugin(object):
         mark = line[0]
 
         # look at the mark
-        for src in self.sources:
-            if src.mark == mark:
+        cmd = None
+        src = self.sources.get(mark)
+        # for src in self.sources:
+        #     if src.mark == mark:
+        if src is not None:
                 logger.debug("Entry mapped to src %s" % src.name)
                 cmd = src.map2command(line)
+                # break
 
+        if cmd is None:
+            # todo use echomsg instead
+            raise Exception ("Could not generate an appropriate cmd")
 
-        return ":echom 'Nothing found for \"" + stripped + "\"'"
+        return ":echom 'Nothing found for \"" + line[0] + "\"'"
 
 
 
@@ -117,3 +133,4 @@ class PalettePlugin(object):
 
 #     def emit(self, record):
 #         msg = self.format(record).replace('"', '`')
+
