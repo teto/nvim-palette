@@ -11,10 +11,17 @@ import gettext as g
 import pandas as pd
 import os
 import json
+import re
 from abc import abstractmethod
 import palette.menus as menus
+from palette.settings import SettingsSource
 
-logger = logging.getLogger('palette')
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("nvimpalette.log", delay=True)
+formatter = logging.Formatter('%(name)s:%(levelname)s: %(message)s')
+handler.setFormatter(formatter)
+
+debug_level = logging.DEBUG
 
 
 @neovim.plugin
@@ -38,12 +45,8 @@ class PalettePlugin(object):
 
         if nvim.vars['palette_debug']:
             # logger.addHandler(NeoVimLoggerHandler(nvim))
-            handler = logging.FileHandler("nvimpalette.log", delay=True)
             logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
-
-            formatter = logging.Formatter('%(name)s:%(levelname)s: %(message)s')
-            handler.setFormatter(formatter)
+            logger.setLevel(debug_level)
 
         """ { mark: src } dict """
         self.sources = {}
@@ -52,6 +55,10 @@ class PalettePlugin(object):
             m = menus.PaletteMenus(nvim)
         # print("test", m.name)
             self.add_source(m)
+
+        # need to import first
+        m = SettingsSource(nvim)
+        self.add_source(m)
 
     @neovim.function('PaletteAddSource', sync=True)
     def add_source(self, src):
@@ -86,8 +93,8 @@ class PalettePlugin(object):
             filter_cmd = opts.get(src.name)
             if filter_cmd:
                 temp = src.serialize(filter_cmd)
-                # temp = map(lambda x: "[" + src.mark + "]" + x, temp )
-                entries.append(temp)
+                temp2 = map(lambda x: "[" + src.mark + "]" + x, temp )
+                entries.append(list(temp2))
             else:
                 logger.debug('No filter for source %s' % src.name)
 
@@ -106,23 +113,37 @@ class PalettePlugin(object):
         logger.info("Trying to map '%s' (type %s)" % (line, type(line)))
 
         # for now mark = first character, could be the last
-        mark = line[0]
+        # mark = line[0]
+        pattern = re.compile("\[(?P<mark>.+)](.*)")
+        res = pattern.match(line)
+        if not res:
+            # raise Exception ("No mark in the selected entry")
+            logger.error("No mark in the selected entry")
+            return None
+
+        logger.info("match=%s" % res)
+        mark = res.group(1)
+        logger.info("Looking for mark  '%s'" % mark)
 
         # look at the mark
         cmd = None
         src = self.sources.get(mark)
+        logger.info("module %s" % __name__)
         # for src in self.sources:
         #     if src.mark == mark:
         if src is not None:
-                logger.debug("Entry mapped to src %s" % src.name)
-                cmd = src.map2command(line)
+                logger.info("Mark mapped to src %s" % src.name)
+                cmd = src.map2command(res.group(2))
                 # break
 
         if cmd is None:
             # todo use echomsg instead
+            logger.error("No mark in the selected entry")
             raise Exception ("Could not generate an appropriate cmd")
 
-        return ":echom 'Nothing found for \"" + line[0] + "\"'"
+        return cmd
+
+        # return ":echom 'Nothing found for \"" + line[0] + "\"'"
 
 
 

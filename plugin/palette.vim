@@ -42,7 +42,8 @@ function! PaletteSelect(filters)
    " for now just supports fzf
 
    " retrieve entries from rplugin
-	let l:entries = PaletteGetEntries(a:filters)
+	let l:entries = PaletteGetEntries(a:filters)[0]
+	" echo "entries0=".string(l:entries[0])
 	call PaletteFzf(l:entries)
 
 endfunc
@@ -52,7 +53,8 @@ endfunc
 function! PaletteFzf(entries)
 	" look at https://github.com/junegunn/fzf/wiki/Examples-(vim)
 	" for the semantics
-	echo "entries=".string(a:entries)
+	" echo "entries=".string(a:entries)
+	" todo we should merge them
 	let g:palette_fzf_opts = get(g:,'palette_fzf_opts', s:fzf_opts)
 	let g:palette_fzf_opts.source = a:entries
 	let l:ret = fzf#run(g:palette_fzf_opts)

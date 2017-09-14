@@ -2,7 +2,7 @@ from palette.source import Source
 import pandas as pd
 import logging
 
-logger = logging.getLogger('palette')
+logger = logging.getLogger(__name__)
 
 
 class PaletteMenus(Source):
@@ -83,6 +83,7 @@ class PaletteMenus(Source):
 
     def map2command(self, line):
 
+        logger.debug("Looking for %s" % line)
         df = self.cached_menus[self.cached_menus.desc == line]
         if len(df) > 0:
             row = df.iloc[0, ]
