@@ -1,4 +1,7 @@
 import pandas as pd
+import msgpack
+import logging
+import os
 from palette.source import Source
 
 logger = logging.getLogger('palette')
@@ -26,18 +29,17 @@ class SettingsSource(Source):
             cmd = "set " + row['full_name'] + "!"
             return cmd
 
-
     def get_bools(self, ):
         """Get only boolean options"""
         entries = []
-        if not self.cached_options.empty and force == False:
+        if not self.cached_options.empty and force is False:
             return self.cached_options
 
         # else load descriptions
 
         # TODO load it on demand
         df = self.load_options_definitions(True)
-        # for now drop columns without desc
+        # for now drop columns without desc
         # df = df.drop("short_desc")
         # sel = df[df.scope == "global"]
         sel = df
@@ -58,14 +60,13 @@ class SettingsSource(Source):
     def get_option_value(self, full_name, scope):
         source = None
         if scope == "global":
-            source = self.nvim.options
+            source = self.vim.options
         elif scope == "window":
-            source = self.nvim.current.window.options
+            source = self.vim.current.window.options
         elif scope == "buffer":
-            source = self.nvim.current.buffer.options
-        # TODO else throw error ?
+            source = self.vim.current.buffer.options
+        # TODO else throw error ?
         return source[full_name]
-
 
     @property
     def cached_options(self):
@@ -75,19 +76,19 @@ class SettingsSource(Source):
         """
         Load vim option descriptions from a mpack file
         """
-        # r = g.bindtextdomain('nvim', locale_dir)
+        # r = g.bindtextdomain('vim', locale_dir)
 
         fields = ["full_name", "short_desc", "abbreviation", "scope"]
-        # we embed the mpack file to deal with old nvim
+        # we embed the mpack file to deal with old vim
         folders = [
-            self.nvim.eval('$VIMRUNTIME').strip(),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..')
+            self.vim.eval('$VIMRUNTIME').strip(),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../..')
         ]
 
         fname = None
         # TODO let the user be able to override default paths
         try:
-            fname = self.nvim.vars['palette_descriptions_file']
+            fname = self.vim.vars['palette_descriptions_file']
             logger.info("using configured g:palette_descriptions_file=%s" % fname)
         except Exception as e:
             logger.debug("Looking for descriptions files")
@@ -110,10 +111,10 @@ class SettingsSource(Source):
             res = msgpack.loads(fd.read())
         except Exception as e:
             logger.error('Could not load definitions')
-            self.nvim.command("echomsg 'Could not load definitions'")
+            self.vim.command("echomsg 'Could not load definitions'")
             raise e
 
-        # TODO here we should postprocess the data and cache it 
+        # TODO here we should postprocess the data and cache it
         # so that it's faster
         df = pd.DataFrame([], columns=fields)
         for entry in res:
@@ -130,4 +131,3 @@ class SettingsSource(Source):
         # todo convert scope to number
         df["scope"] = df["scope"].apply(lambda x: [e.decode() for e in x])
         return d
-

@@ -31,10 +31,10 @@ if exists("*menu_get")
 	command! PaletteMenu call PaletteSelect({ 'menus': 1})
 endif
 
-if exists("*nvim_get_keymap")
-	" echom "has nvim_get_keymap"
-	command! PaletteKeymaps call PaletteSelect({ 'menus': 1})
-endif
+" if exists("*nvim_get_keymap")
+" 	" echom "has nvim_get_keymap"
+" 	command! PaletteKeymaps call PaletteSelect({ 'keymaps': 1})
+" endif
 
 
 function! PaletteSelect(filters)
@@ -42,9 +42,9 @@ function! PaletteSelect(filters)
    " for now just supports fzf
 
    " retrieve entries from rplugin
-	let l:entries = PaletteGetEntries(a:filters)[0]
+	let l:entries = PaletteGetEntries(a:filters)
 	" echo "entries0=".string(l:entries[0])
-	call PaletteFzf(l:entries)
+	call PaletteFzf(l:entries[0])
 
 endfunc
 

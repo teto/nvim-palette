@@ -1,11 +1,10 @@
-#!/
+#!/usr/bin/env python
 """
 Description: Easy toggling ON/OFF of options
 License: GPLv3
 """
 
 import neovim
-import msgpack
 import logging
 import gettext as g
 import pandas as pd
@@ -13,7 +12,7 @@ import os
 import json
 import re
 from abc import abstractmethod
-import palette.menus as menus
+from palette.menus import PaletteMenus
 from palette.settings import SettingsSource
 
 logger = logging.getLogger(__name__)
@@ -52,7 +51,7 @@ class PalettePlugin(object):
         self.sources = {}
         # TODO should be done from vim side ?
         if nvim.eval("exists('*menu_get')"):
-            m = menus.PaletteMenus(nvim)
+            m = PaletteMenus(nvim)
         # print("test", m.name)
             self.add_source(m)
 

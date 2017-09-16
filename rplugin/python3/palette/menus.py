@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 class PaletteMenus(Source):
     def __init__(self, *args, **kwargs):
-        print(args)
         self._cached_menu = pd.DataFrame()
         super().__init__(*args, **kwargs)
         self.vim.subscribe("update_menu")

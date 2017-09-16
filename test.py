@@ -5,7 +5,8 @@ sys.path.append('/home/teto/nvim-palette/rplugin/python3')
 # from __init__ import * # noqa: E402
 from palette import PalettePlugin  # noqa: E402
 
-# echo serverlist() or v:servername in a running nvim
+# echo serverlist() or v:servername in a running nvim
 nvim = attach('socket', path=sys.argv[1])
 p = PalettePlugin(nvim)
-p.get_propositions([{ 'menus': 'toto'}])
+print(p.get_propositions([{ 'settings': ''}]))
+# p.get_propositions([{ 'menus': 'toto'}])
