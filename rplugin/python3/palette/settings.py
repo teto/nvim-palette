@@ -7,9 +7,10 @@ from palette.source import Source
 logger = logging.getLogger('palette')
 
 class SettingsSource(Source):
-    def __init__(self, vim):
+    def __init__(self, *args, **kwargs):
         self._cached_opts = pd.DataFrame()
-        Source.__init__(self, vim)
+        # Source.__init__(self, vim)
+        super().__init__(*args, **kwargs)
 
     @Source.name.getter
     def name(self):
@@ -19,20 +20,24 @@ class SettingsSource(Source):
     def serialize(self, filters):
         return self.get_bools()
 
-    def map2command(self, cmd):
-        df = self.cached_options[self.cached_options.short_desc == stripped]
-        stripped = line[:-len(" (switch OFF)")]
+    def map2command(self, entry):
+        stripped = entry[:-len(" (switch OFF)")]
         logger.debug("Looking for short_desc=%s" % stripped)
+        df = self.cached_options[self.cached_options.short_desc == stripped]
         if len(df) > 0:
             # TODO escape it replace('"','\\"')
+            logger.debug("found a match=%s" % stripped)
             row = df.iloc[0, ]
             cmd = "set " + row['full_name'] + "!"
             return cmd
 
+        raise Exception("Could not find a match for %s" % stripped)
+
     def get_bools(self, ):
         """Get only boolean options"""
         entries = []
-        if not self.cached_options.empty and force is False:
+        if self.cached_options.empty is False:
+            logger.debug("Returning from cache")
             return self.cached_options
 
         # else load descriptions
@@ -48,7 +53,7 @@ class SettingsSource(Source):
             if "global" in row.scope:
                 try:
                     logger.debug("scope =%r" % row.scope)
-                    short_desc = g.gettext(row.short_desc)
+                    short_desc = row.short_desc
                     short_desc += " (switch %s)" % ("OFF" if self.get_option_value(row.full_name, row.scope[0]) else "ON ")
                     entries.append(short_desc)
                 except Exception as e:
@@ -72,10 +77,11 @@ class SettingsSource(Source):
     def cached_options(self):
         return self._cached_opts
 
-    def load_options_definitions(self, force=False):
+    def load_options_definitions(self, force=False) -> pd.DataFrame:
         """
         Load vim option descriptions from a mpack file
         """
+        # TODO reestabligh gettext
         # r = g.bindtextdomain('vim', locale_dir)
 
         fields = ["full_name", "short_desc", "abbreviation", "scope"]
@@ -130,4 +136,4 @@ class SettingsSource(Source):
 
         # todo convert scope to number
         df["scope"] = df["scope"].apply(lambda x: [e.decode() for e in x])
-        return d
+        return df

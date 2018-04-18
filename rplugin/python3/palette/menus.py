@@ -1,6 +1,7 @@
 from palette.source import Source
 import pandas as pd
 import logging
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class PaletteMenus(Source):
         """ (temporary) rename to ease testing"""
         return "menus"
 
-    def retrieve_menus(self, force=False):
+    def retrieve_menus(self, force=False) -> pd.DataFrame:
         """
         TODO build a pandaframe along the way to optimizeEnabling networkmanager should be enough for VPN plugins to work
         TODO on update_menu notification reload menus
@@ -30,7 +31,7 @@ class PaletteMenus(Source):
         # m = "test"
         # r = self.nvim.vars["r"]
         # entries = []
-        entries = {}
+        entries : Dict  = {}
         if not self.cached_menus.empty and force is False:
             return self.cached_menus
 

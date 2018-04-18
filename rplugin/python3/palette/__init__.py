@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Description: Easy toggling ON/OFF of options
 License: GPLv3
@@ -14,6 +13,8 @@ import re
 from abc import abstractmethod
 from palette.menus import PaletteMenus
 from palette.settings import SettingsSource
+from typing import Dict
+from palette.source import Source
 
 logger = logging.getLogger(__name__)
 handler = logging.FileHandler("nvimpalette.log", delay=True)
@@ -48,7 +49,7 @@ class PalettePlugin(object):
             logger.setLevel(debug_level)
 
         """ { mark: src } dict """
-        self.sources = {}
+        self.sources : Dict[str, Source] = {}
         # TODO should be done from vim side ?
         if nvim.eval("exists('*menu_get')"):
             m = PaletteMenus(nvim)
@@ -56,11 +57,11 @@ class PalettePlugin(object):
             self.add_source(m)
 
         # need to import first
-        m = SettingsSource(nvim)
-        self.add_source(m)
+        n = SettingsSource(nvim)
+        self.add_source(n)
 
     @neovim.function('PaletteAddSource', sync=True)
-    def add_source(self, src):
+    def add_source(self, src: Source):
         """
         look at deoplete "find_rplugins"; it searches in
         runtime/rplugin/python3/deoplete for source files.
@@ -69,8 +70,20 @@ class PalettePlugin(object):
         if self.sources.get(src.mark):
             raise Exception("A source is already registered with mark %s " % src.name)
 
+        logger.info("Added source [%s]" % src.name)
         self.sources[src.mark] = src
 
+    @neovim.function('PaletteShowSources', sync=True)
+    def list_sources(self, ):
+        """
+        look at deoplete "find_rplugins"; it searches in
+        runtime/rplugin/python3/deoplete for source files.
+        it is called by deoplete.py:load_sources
+        """
+        # if self.sources.get(src.mark):
+        #     raise Exception("A source is already registered with mark %s " % src.name)
+
+        return list(self.sources.keys())
 
     # @neovim.function('PaletteGetMenu', sync=True)
     # def get_menus(self, args):
@@ -79,7 +92,7 @@ class PalettePlugin(object):
     #     res = self.nvim.call('PaletteFzf', keys)
 
     @neovim.function('PaletteGetEntries', sync=True)
-    def get_propositions(self, opts=[{'options': True}]):
+    def get_propositions(self, opts=[{'settings': True}]):
         """
         Accept a dictionary:
             { name: filter }
@@ -90,6 +103,7 @@ class PalettePlugin(object):
         opts = opts[0] # hack because vimL dict seems encapsulated into a list
         for _, src in self.sources.items():
             filter_cmd = opts.get(src.name)
+            logger.debug('filter %r for source %s' % (filter_cmd, src.name))
             if filter_cmd:
                 temp = src.serialize(filter_cmd)
                 temp2 = map(lambda x: "[" + src.mark + "]" + x, temp )
@@ -122,11 +136,11 @@ class PalettePlugin(object):
 
         logger.info("match=%s" % res)
         mark = res.group(1)
-        logger.info("Looking for mark  '%s'" % mark)
+        logger.info("Looking for mark '%s'" % mark)
 
         # look at the mark
         cmd = None
-        src = self.sources.get(mark)
+        src = self.sources.get(mark, None)
         logger.info("module %s" % __name__)
         # for src in self.sources:
         #     if src.mark == mark:

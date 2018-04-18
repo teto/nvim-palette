@@ -22,7 +22,8 @@ let s:fzf_opts = {
 
 
 " command! -nargs=* -complete=customlist,<sid>complete Palette call <sid>parse_flags(<q-args>)
-command! Palette call PaletteSelect({ 'menus': v:true, 'options': v:true})
+command! Palette call PaletteSelect({ 'menus': v:true, 'settings': v:true})
+command! PaletteSettings call PaletteSelect({'settings': v:true})
 
 if exists("*menu_get")
 	" echom "has export_menu"

@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import List
 
 class Source:
     """
@@ -18,21 +19,23 @@ class Source:
         return self.name
 
     @property
+    @abstractmethod
     def name(self):
         return self.__class__.__name__
 
-
     @abstractmethod
-    def serialize(self, _filter):
+    def serialize(self, _filter) -> List:
         """
-        Should return serialized entries
+        Should return serialized entries, i.e. as a list ?
+        Get 
         """
         pass
 
     @abstractmethod
-    def map2command(self, line):
+    def map2command(self, line) -> str:
         """
         might rename to map_entry or anything
+        map 
         """
         pass
 
