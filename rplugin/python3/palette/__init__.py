@@ -11,6 +11,7 @@ import os
 import json
 import re
 from abc import abstractmethod
+from palette.keymaps import PaletteKeymaps
 from palette.menus import PaletteMenus
 from palette.settings import SettingsSource
 from typing import Dict
@@ -53,10 +54,13 @@ class PalettePlugin(object):
         # TODO should be done from vim side ?
         if nvim.eval("exists('*menu_get')"):
             m = PaletteMenus(nvim)
-        # print("test", m.name)
             self.add_source(m)
 
-        # need to import first
+        if nvim.eval("exists('*menu_get')"):
+            m = PaletteKeymaps(nvim)
+            self.add_source(m)
+
+        # always available
         n = SettingsSource(nvim)
         self.add_source(n)
 

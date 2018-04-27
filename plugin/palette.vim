@@ -23,7 +23,7 @@ let s:fzf_opts = {
 
 
 " command! -nargs=* -complete=customlist,<sid>complete Palette call <sid>parse_flags(<q-args>)
-command! Palette call PaletteSelect({ 'menus': "", 'settings': v:true})
+command! Palette call PaletteSelect({ 'menus': "", 'settings': "", "keymaps": ""})
 command! PaletteSettings call PaletteSelect({'settings': v:true})
 
 if exists("*menu_get")
