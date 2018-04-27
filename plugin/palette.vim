@@ -4,6 +4,7 @@
 
 
 function! s:processResult(res)
+	" echom "Selected entry=".a:res
 	let cmd = PalettePostprocessChoice(a:res)
 	echom "Received cmd=".cmd
 	execute cmd
@@ -22,20 +23,20 @@ let s:fzf_opts = {
 
 
 " command! -nargs=* -complete=customlist,<sid>complete Palette call <sid>parse_flags(<q-args>)
-command! Palette call PaletteSelect({ 'menus': v:true, 'settings': v:true})
+command! Palette call PaletteSelect({ 'menus': "", 'settings': v:true})
 command! PaletteSettings call PaletteSelect({'settings': v:true})
 
 if exists("*menu_get")
 	" echom "has export_menu"
 	" PaletteAddSource("menu")
 
-	command! PaletteMenu call PaletteSelect({ 'menus': 1})
+	command! PaletteMenu call PaletteSelect({ 'menus': ""})
 endif
 
-" if exists("*nvim_get_keymap")
+if exists("*nvim_get_keymap")
 " 	" echom "has nvim_get_keymap"
-" 	command! PaletteKeymaps call PaletteSelect({ 'keymaps': 1})
-" endif
+	command! PaletteKeymaps call PaletteSelect({ 'keymaps': 1})
+endif
 
 
 function! PaletteSelect(filters)
@@ -44,8 +45,8 @@ function! PaletteSelect(filters)
 
    " retrieve entries from rplugin
 	let l:entries = PaletteGetEntries(a:filters)
-	" echo "entries0=".string(l:entries[0])
-	call PaletteFzf(l:entries[0])
+	" echo "entries0=".string(l:entries)
+	call PaletteFzf(l:entries)
 
 endfunc
 

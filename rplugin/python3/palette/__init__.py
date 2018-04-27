@@ -92,7 +92,7 @@ class PalettePlugin(object):
     #     res = self.nvim.call('PaletteFzf', keys)
 
     @neovim.function('PaletteGetEntries', sync=True)
-    def get_propositions(self, opts=[{'settings': True}]):
+    def get_propositions(self, opts=[{'settings': ""}]):
         """
         Accept a dictionary:
             { name: filter }
@@ -101,18 +101,21 @@ class PalettePlugin(object):
         entries = []
         logger.debug("options %r" % opts)
         opts = opts[0] # hack because vimL dict seems encapsulated into a list
-        for _, src in self.sources.items():
-            filter_cmd = opts.get(src.name)
-            logger.debug('filter %r for source %s' % (filter_cmd, src.name))
-            if filter_cmd:
-                temp = src.serialize(filter_cmd)
-                temp2 = map(lambda x: "[" + src.mark + "]" + x, temp )
-                entries.append(list(temp2))
-            else:
-                logger.debug('No filter for source %s' % src.name)
+        # for _, src in self.sources.items():
+        for src_name, filter_cmd in opts.items():
+            src = self.sources.get(src_name, None)
+            if src is None:
+                logger.warn("Invalid source [%s] requested" % src_name)
+                continue
 
-        logger.debug("Choosing between %s" % entries[:10])
-        # res = self.nvim.call('PaletteFzf', entries)
+            logger.debug('filter %r for source %s' % (filter_cmd, src_name))
+            temp = src.serialize(filter_cmd)
+            temp2 = map(lambda x: "[" + src.mark + "]" + x, temp )
+            # entries = entries + list(temp2)
+            entries.extend(list(temp2))
+
+        # logger.debug("Choosing between %s" % entries[:10])
+        logger.debug("Choosing between %s" % entries)
         return entries
 
     @neovim.function('PalettePostprocessChoice', sync=True)
@@ -142,21 +145,16 @@ class PalettePlugin(object):
         cmd = None
         src = self.sources.get(mark, None)
         logger.info("module %s" % __name__)
-        # for src in self.sources:
-        #     if src.mark == mark:
+
         if src is not None:
-                logger.info("Mark mapped to src %s" % src.name)
-                cmd = src.map2command(res.group(2))
-                # break
+            logger.info("Mark mapped to src [%s]" % src.name)
+            cmd = src.map2command(res.group(2))
 
         if cmd is None:
-            # todo use echomsg instead
             logger.error("No mark in the selected entry")
             raise Exception ("Could not generate an appropriate cmd")
 
         return cmd
-
-        # return ":echom 'Nothing found for \"" + line[0] + "\"'"
 
 
 

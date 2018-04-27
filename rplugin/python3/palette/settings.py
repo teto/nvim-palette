@@ -3,13 +3,13 @@ import msgpack
 import logging
 import os
 from palette.source import Source
+from typing import List
 
 logger = logging.getLogger('palette')
 
 class SettingsSource(Source):
     def __init__(self, *args, **kwargs):
-        self._cached_opts = pd.DataFrame()
-        # Source.__init__(self, vim)
+        self._settings = pd.DataFrame()
         super().__init__(*args, **kwargs)
 
     @Source.name.getter
@@ -18,12 +18,12 @@ class SettingsSource(Source):
         return "settings"
 
     def serialize(self, filters):
-        return self.get_bools()
+        return self.boolean_settings
 
     def map2command(self, entry):
         stripped = entry[:-len(" (switch OFF)")]
         logger.debug("Looking for short_desc=%s" % stripped)
-        df = self.cached_options[self.cached_options.short_desc == stripped]
+        df = self.settings[self.settings.short_desc == stripped]
         if len(df) > 0:
             # TODO escape it replace('"','\\"')
             logger.debug("found a match=%s" % stripped)
@@ -33,26 +33,19 @@ class SettingsSource(Source):
 
         raise Exception("Could not find a match for %s" % stripped)
 
-    def get_bools(self, ):
+    @property
+    def boolean_settings(self, ) -> List[str]:
         """Get only boolean options"""
         entries = []
-        if self.cached_options.empty is False:
-            logger.debug("Returning from cache")
-            return self.cached_options
-
-        # else load descriptions
-
-        # TODO load it on demand
-        df = self.load_options_definitions(True)
         # for now drop columns without desc
         # df = df.drop("short_desc")
         # sel = df[df.scope == "global"]
-        sel = df
+        sel = self.settings
         sel = sel[sel.type == "bool"]
         for row in sel.itertuples():
-            if "global" in row.scope:
+            # if "global" in row.scope:
                 try:
-                    logger.debug("scope =%r" % row.scope)
+                    # logger.debug("scope =%r" % row.scope)
                     short_desc = row.short_desc
                     short_desc += " (switch %s)" % ("OFF" if self.get_option_value(row.full_name, row.scope[0]) else "ON ")
                     entries.append(short_desc)
@@ -73,16 +66,24 @@ class SettingsSource(Source):
         # TODO else throw error ?
         return source[full_name]
 
+
     @property
-    def cached_options(self):
-        return self._cached_opts
+    def settings(self):
+
+        if self._settings.empty is False:
+            logger.debug("Returning from cache")
+            return self._settings
+
+        self._settings = self.load_options_definitions(True)
+        return self._settings
 
     def load_options_definitions(self, force=False) -> pd.DataFrame:
         """
         Load vim option descriptions from a mpack file
         """
-        # TODO reestabligh gettext
+        # TODO restore gettext
         # r = g.bindtextdomain('vim', locale_dir)
+        logger.debug("Loading descriptions ")
 
         fields = ["full_name", "short_desc", "abbreviation", "scope"]
         # we embed the mpack file to deal with old vim
@@ -92,35 +93,30 @@ class SettingsSource(Source):
         ]
 
         fname = None
-        # TODO let the user be able to override default paths
         try:
+            # let the user be able to override default paths
             fname = self.vim.vars['palette_descriptions_file']
             logger.info("using configured g:palette_descriptions_file=%s" % fname)
         except Exception as e:
             logger.debug("Looking for descriptions files")
-            # NvimDevLintToggle
-        if fname is None:
 
+        if fname is None:
             for folder in folders:
                 fname = os.path.join(folder, 'data', 'options.mpack')
                 logger.debug("Checking path '%s'" % fname)
                 if os.path.isfile(fname):
                     break
 
-        # fname = '/home/teto/neovim2/build/runtime/data/options.mpack'
-        # fname = os.path.join(filedir, "options.mpack"),
         logger.info("Loading descriptions from file %s" % fname)
 
         try:
             fd = open(fname, 'rb')
-            # todo maybe we can load it one at a time ?
             res = msgpack.loads(fd.read())
         except Exception as e:
             logger.error('Could not load definitions')
             self.vim.command("echomsg 'Could not load definitions'")
             raise e
 
-        # TODO here we should postprocess the data and cache it
         # so that it's faster
         df = pd.DataFrame([], columns=fields)
         for entry in res:
