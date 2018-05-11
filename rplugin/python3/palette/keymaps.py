@@ -1,7 +1,8 @@
 import pandas as pd
 import logging
 from palette.source import Source
-from typing import Dict
+import re
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 class PaletteKeymaps(Source):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._keymaps = pd.DataFrame()
+        self._keymaps = None
 
     @Source.name.getter
     def name(self):
@@ -17,13 +18,11 @@ class PaletteKeymaps(Source):
         return "keymaps"
 
     def serialize(self, filter_cmd):
-        # keymaps = self.retrieve_menus()
-        # name
         return self.keymaps
 
     @property
     def keymaps(self,):
-        if self._keymaps.empty:
+        if self._keymaps is None:
             self._keymaps = self.load_keymaps()
         return self._keymaps
 
