@@ -1,0 +1,12 @@
+name: netlink-pm
+version: 1.0.0
+license: GPL-3
+license-file: gpl-3.0.txt
+cabal-version: >= 1.18
+build-type: Simple
+
+executable daemon
+    build-depends: base, netlink, optparse-applicative, bytestring-conversion, binary, containers, bytestring, cereal
+    main-is: daemon.hs
+    default-language: Haskell2010
+
