@@ -29,6 +29,5 @@ haskellPackages.shellFor {
     # check if it's still needed ?
     export HIE_HOOGLE_DATABASE="$NIX_GHC_LIBDIR/../../share/doc/hoogle/index.html"
     # export runghc=" "
-    source ./run_daemon
   '';
 }
