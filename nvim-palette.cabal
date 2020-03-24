@@ -15,7 +15,8 @@ executable daemon
         optparse-applicative,
         bytestring-conversion,
         cassava,
-        data-msgpack
-    main-is: main.hs
+        data-msgpack,
+        nvim-hs
+    main-is: src/main.hs
     default-language: Haskell2010
 

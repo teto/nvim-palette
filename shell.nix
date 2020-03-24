@@ -14,7 +14,9 @@ let
   palette = (import ./. );
 
   # genNeovim comes from overlay, not uploaded yet
-  my_nvim = nixpkgs.genNeovim  [ palette ] {
+  local_nixpkgs = import <nixpkgs> {};
+  # palette
+  my_nvim = local_nixpkgs.genNeovim  [ ] {
     withHaskell = true;
 
     neovimRC = ''
@@ -30,8 +32,17 @@ let
   # hercules-ci is a fork of cachix
   ghcide-nix = import (builtins.fetchTarball "https://github.com/cachix/ghcide-nix/tarball/master") {};
 
-  # { inherit compiler;}
-  my_pkg = (import ./. );
+  # https://discourse.nixos.org/t/how-to-override-a-haskell-package-in-shell-nix/2907
+  my_haskellPackages = nixpkgs.dontRecurseIntoAttrs( local_nixpkgs.haskell.packages."${compilerName}".extend (
+    hself: hold: with local_nixpkgs.haskell.lib; rec {
+      # useful to fetch newer libraries with callHackage
+      # gutenhasktags = dontCheck (hprev.callPackage ./pkgs/gutenhasktags {});
+
+      # for newer nixpkgs (March 2020)
+      base-compat = doJailbreak (hold.base-compat);
+      time-compat = doJailbreak (hold.time-compat);
+  }));
+
 
 in
 # compiler.shellFor {
@@ -39,23 +50,26 @@ in
 # withHoogle = true;
 # nativeBuildInputs = with pkgs; [
 
-(my_pkg.envFunc { withHoogle = true; }).overrideAttrs (oa: {
+(palette.envFunc { withHoogle = true; }).overrideAttrs (oa: {
   # the dependencies of packages listed in `packages`, not the
 
-    nativeBuildInputs = oa.nativeBuildInputs ++ (with pkgs; [
+  nativeBuildInputs = oa.nativeBuildInputs ++ ([
     # all-hies.versions."${compilerName}"
+    # my_nvim
 
     # or ghcide
     ghcide-nix."ghcide-${compilerName}"
 
-    haskellPackages.hasktags
-    haskellPackages.nvim-hs
-    haskellPackages.nvim-hs-ghcid # too old, won't support nvim-hs-contrib 2
-    haskellPackages.cabal-install
+    my_haskellPackages.hasktags
+    my_haskellPackages.nvim-hs
+    my_haskellPackages.nvim-hs-ghcid # too old, won't support nvim-hs-contrib 2
+    my_haskellPackages.cabal-install
 
     # haskellPackages.gutenhasktags  # taken from my overlay
     # haskellPackages.haskdogs # seems to build on hasktags/ recursively import things
   ]);
+
+  propagatedBuildInputs = [];
 
   shellHook = ''
     # check if it's still needed ?

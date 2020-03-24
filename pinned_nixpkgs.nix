@@ -7,17 +7,9 @@ let
           # ip = pkgs.haskell.lib.dontCheck hold.ip;
           all-hies = import (fetchTarball "https://github.com/infinisil/all-hies/tarball/master") {};
 
-          # ip = dontCheck hold.ip;
-          # c2hsc = dontCheck hold.c2hsc;
-
-          # can be released on more recent nixplks
-          # wide-word = doJailbreak (hold.wide-word);
-          # quickcheck-classes = hold.quickcheck-classes_0_6_4_0;
-
           # for newer nixpkgs (March 2020)
           base-compat = doJailbreak (hold.base-compat);
           time-compat = doJailbreak (hold.time-compat);
-
         };
       };
   };
