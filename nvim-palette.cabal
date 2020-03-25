@@ -10,6 +10,7 @@ executable daemon
   -- data-msgpack last commit is 2018
   -- msgpack  is old
   -- https://hackage.haskell.org/package/messagepack 2019
+    hs-source-dirs: ., src
     build-depends:
         base,
         optparse-applicative,
@@ -17,6 +18,8 @@ executable daemon
         cassava,
         data-msgpack,
         nvim-hs
+    other-modules: Fibonacci
     main-is: src/main.hs
     default-language: Haskell2010
 
+-- library 
