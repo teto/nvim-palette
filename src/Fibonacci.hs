@@ -11,7 +11,7 @@ plugin = wrapPlugin Plugin
     }
 
 
-main :: IO ()
-main = neovim defaultConfig
-    { plugins = plugins defaultConfig ++ [ plugin ]
-    }
+-- main :: IO ()
+-- main = neovim defaultConfig
+--     { plugins = plugins defaultConfig ++ [ plugin ]
+--     }

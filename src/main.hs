@@ -5,9 +5,9 @@
 
 module Main where
 
-  import Neovim
-  import qualified Fibonacci as Fibonacci
+import Neovim
+import qualified Fibonacci as Fibonacci
 
-  -- import qualified Module.With.MyPlugin as MyPlugin
-  main :: IO ()
-  main = neovim defaultConfig { plugins = [Fibonacci.plugin] }
+-- import qualified Module.With.MyPlugin as MyPlugin
+main :: IO ()
+main = neovim defaultConfig { plugins = [Fibonacci.plugin] }
