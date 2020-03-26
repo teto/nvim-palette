@@ -5,11 +5,14 @@ let
 
           # from nixpkgs-stackage overlay
           # ip = pkgs.haskell.lib.dontCheck hold.ip;
-          all-hies = import (fetchTarball "https://github.com/infinisil/all-hies/tarball/master") {};
+          # all-hies = import (fetchTarball "https://github.com/infinisil/all-hies/tarball/master") {};
 
           # for newer nixpkgs (March 2020)
           base-compat = doJailbreak (hold.base-compat);
           time-compat = doJailbreak (hold.time-compat);
+
+          # msgpack = doJailbreak (hold.msgpack);
+
         };
       };
   };

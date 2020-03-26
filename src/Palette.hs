@@ -1,13 +1,22 @@
 module Palette where
 import Data.ByteString.Lazy (writeFile, readFile)
 import Data.MessagePack
+import Data.Serialize.Get (runGet)
+import Data.Serialize (
+    decodeLazy, Serialize, decode)
 
-openMpack :: String -> IO [Entry]
+-- ObjectArray [
+openMpack :: String -> IO Object
 openMpack filename = do
-  filteredConnectionsStr <- Data.ByteString.Lazy.readFile filename
+  optionsStr <- Data.ByteString.Lazy.readFile filename
   -- getArray
-  case Data.Aeson.eitherDecode filteredConnectionsStr of
-      -- case Data.Aeson.eitherDecode "[]" of
+  -- ObjectArray
+  -- return $ runGet $ get optionsStr
+  -- decode
+  -- decodeLazy
+  case (decodeLazy optionsStr) of
+  -- case Data.Aeson.eitherDecode filteredConnectionsStr of
+  --     -- case Data.Aeson.eitherDecode "[]" of
       Left errMsg -> error ("Failed loading " ++ filename ++ ":\n" ++ errMsg)
       Right list -> return list
 
@@ -18,8 +27,8 @@ openMpack filename = do
 -- redraw={'curswant'},
 -- varname='p_aleph',
 
-data Scope = Global | Window | Buffer 
-  deriving Enum
+data Scope = Global | Window | Buffer
+  deriving (Read, Show)
 
 -- instance Enum Scope
 --   toEnum "Global" = Global
@@ -31,7 +40,12 @@ data Entry = Entry {
   , entryScope :: [Scope]
   , entryVarname :: String
 
-} derive Show;
+-- Serialize
+} deriving (Show);
+
+-- instance Serialize Entry where
+--   put = undefined
+--   get = undefined
 
 -- loadEntry ::
 

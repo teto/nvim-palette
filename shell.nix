@@ -41,6 +41,8 @@ let
       # for newer nixpkgs (March 2020)
       base-compat = doJailbreak (hold.base-compat);
       time-compat = doJailbreak (hold.time-compat);
+
+      # msgpack = doJailbreak (hold.msgpack);
   }));
 
 

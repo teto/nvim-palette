@@ -9,6 +9,7 @@ executable daemon
   -- , msgpack-rpc
   -- data-msgpack last commit is 2018
   -- data-msgpack  is a fork of msgpack that has since revived
+  -- but msgpack is used by nvim-hs
   -- msgpack-haskell https://hackage.haskell.org/package/messagepack 2019
     hs-source-dirs: ., src
     build-depends:
@@ -17,9 +18,11 @@ executable daemon
         bytestring,
         bytestring-conversion,
         cassava,
+        cereal,
         -- was a problem with quickcheck
         -- msgpack,
-        data-msgpack,
+        messagepack,
+        -- data-msgpack,
         nvim-hs
     other-modules: Fibonacci, Fibonacci.Plugin, Palette
     main-is: src/main.hs
