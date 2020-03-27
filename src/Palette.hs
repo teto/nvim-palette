@@ -4,6 +4,7 @@ import Data.MessagePack
 import Data.Serialize.Get (runGet)
 import Data.Serialize (
     decodeLazy, Serialize, decode)
+import qualified Data.Map as M
 
 -- ObjectArray [
 openMpack :: String -> IO Object
@@ -42,6 +43,18 @@ data Entry = Entry {
 
 -- Serialize
 } deriving (Show);
+-- P.pretty . UTF8.toString <$> fromObject o
+--     put (ObjectMap m)      =
+entryFromObject :: Object -> Either String Entry
+-- entryFromObject ::  -> Either String Entry
+entryFromObject _ = undefined
+-- m of type (M.Map Object Object )
+entryFromObject (ObjectMap m) = 
+  -- Left "unimplemented"
+  Left Entry {
+    entryFullname = fromJust M.Lookup "fullname"
+
+
 
 -- instance Serialize Entry where
 --   put = undefined
