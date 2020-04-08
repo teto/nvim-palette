@@ -27,7 +27,9 @@ let
     '';
   };
 
-  all-hies = import (fetchTarball "https://github.com/infinisil/all-hies/tarball/master") {};
+  # all-hies = import (fetchTarball "https://github.com/infinisil/all-hies/tarball/master") {};
+  # attempt to fix libc compat
+  all-hies = import (fetchTarball "https://github.com/teto/all-hies/tarball/test") {};
 
   # hercules-ci is a fork of cachix
   ghcide-nix = import (builtins.fetchTarball "https://github.com/cachix/ghcide-nix/tarball/master") {};
@@ -39,8 +41,8 @@ let
       # gutenhasktags = dontCheck (hprev.callPackage ./pkgs/gutenhasktags {});
 
       # for newer nixpkgs (March 2020)
-      base-compat = doJailbreak (hold.base-compat);
-      time-compat = doJailbreak (hold.time-compat);
+      # base-compat = doJailbreak (hold.base-compat);
+      # time-compat = doJailbreak (hold.time-compat);
 
       # msgpack = doJailbreak (hold.msgpack);
   }));

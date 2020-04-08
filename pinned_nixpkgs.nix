@@ -19,13 +19,14 @@ let
 
   # pinned nixpkgs before cabal 3 becomes the default else hie fails
   nixpkgs = import <nixpkgs>
+
   # nixpkgs = import (builtins.fetchTarball {
-  #     name = "before-libc-update";
-  #     url = "https://github.com/nixos/nixpkgs/archive/fa7445532900f2555435076c1e7dce0684daa01a.tar.gz";
-  #     sha256 = "1hbf7kmbxmd19hj3kz9lglnyi4g20jjychmlhcz4bx1limfv3c3r";
+  #     name = "toto";
+  #     url = "https://github.com/nixos/nixpkgs/archive/3320a06049fc259e87a2bd98f4cd42f15f746b96.tar.gz";
+  #     sha256 = "1g5l186d5xh187vdcpfsz1ff8s749949c1pclvzfkylpar09ldkl";
   # })
   {
-    overlays = [overlay];
+    # overlays = [overlay];
     # config = {allowBroken = true;}; 
   };
 in

@@ -11,8 +11,11 @@ import Palette
 
 -- import qualified Module.With.MyPlugin as MyPlugin
 -- main :: IO ()
+-- TODO pass a log
 -- main = neovim defaultConfig { plugins = [Fibonacci.plugin] }
 --
+
+-- vim_command
 
 main :: IO ()
 main = do
