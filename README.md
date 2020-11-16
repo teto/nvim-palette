@@ -1,3 +1,9 @@
+DEPRECATED: This plugin was meant as a PoC. I don't have time to maintain it and
+since https://github.com/neovim/neovim/pull/6288 has been merged, I expect
+plugin authors to leverage it. It's not at feature parity yet (November 2020)
+but will be soon, https://github.com/nvim-telescope/telescope.nvim can fuzzy
+search options via `:Telescope vim_options`.
+
 # nvim-palette
 
 Change nvim options at runtime without remembering their name !
